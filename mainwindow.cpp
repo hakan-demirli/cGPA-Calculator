@@ -67,22 +67,27 @@ MainWindow::~MainWindow()
 void MainWindow::on_textBrowser_cursorPositionChanged()
 {
     block_number = ui->textBrowser->textCursor().blockNumber();
-    std::cout << block_number << std::endl;
+    block_number = ((int)block_number-1)/4;
+
+    if(block_number == (all_list_size/10))
+    {
+        block_number -= 1;
+    }
+
+    std::cout << (block_number) << std::endl;
+    std::cout << ((all_list_size/10)) << std::endl;
     QTextCursor cur = ui->textBrowser->textCursor();
     QTextBlockFormat f;
     //QString text;
     //f.setBackground(Qt::red);
-    cur.movePosition(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
-    cur.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
     cur.select(QTextCursor::LineUnderCursor);
-    //cur.select(QTextCursor::LineUnderCursor);
     cur.setBlockFormat(f);
     ui->textBrowser->setTextCursor(cur);
     //text = cur.selectedText();
 
-    //ui->course_input->setText(QString::fromStdString(all_original[coursename_data + (block_number*10)]));
-    //ui->letter_input->setText(QString::fromStdString(all_original[letter_data + (block_number*10)]));
-    //ui->credit_input->setText(QString::fromStdString(all_original[credit_data + (block_number*10)]));
+    ui->course_input->setText(QString::fromStdString(all_original[coursename_data + (block_number*10)]));
+    ui->letter_input->setText(QString::fromStdString(all_original[letter_data + (block_number*10)]));
+    ui->credit_input->setText(QString::fromStdString(all_original[credit_data + (block_number*10)]));
 }
 
 void MainWindow::on_addButton_clicked()
@@ -221,7 +226,7 @@ void MainWindow::update_textBrowser()
         for(unsigned int i = 0; i < all_list_size - 9; i = i + 10){
             html_add_row(display_html);
 
-            cn_d  << std::left  << std::setw(9) << all_display[coursename_data + i];
+            cn_d  << std::left  << all_display[coursename_data + i];
             l_d   << std::right << std::setw(9) << all_display[letter_data + i];
             c_d   << std::right << std::setw(9) << all_display[credit_data + i];
             w_d   << std::right << std::setw(9) << all_display[weight_data + i];
