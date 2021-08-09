@@ -3,6 +3,7 @@
 const std::vector<std::string> Utility::VALID_LETTERS = {"AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF", "NA", "U", "P", "W", "I", "EX", "S"};
 const QString Utility::ALLOWED_SYMBOLS = QString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
+
 Utility::Utility()
 {
 }

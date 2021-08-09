@@ -35,11 +35,11 @@ int PythonParser::parse_python_dictionary(std::vector<std::string> &all, std::st
             all[i].erase(std::remove(all[i].begin(), all[i].end(), ','), all[i].end());
             all[i].erase(std::remove(all[i].begin(), all[i].end(), ' '), all[i].end());
 
-            if (all[i].size() == 0)
-                std::cout << "EMPTY" << std::endl;
-            else     
+            if (all[i].size() != 0)
                 i += 1;
-
+            else{
+                //std::cout << "EMPTY" << std::endl;
+            }
             even = 0;
         }
     }

@@ -11,6 +11,7 @@
 #include <QTime>
 #include <QStyle>
 #include <QFontDatabase>
+#include <QtAndroid>
 
 #include <string>
 #include <iostream>
@@ -42,8 +43,6 @@ private slots:
     void on_textBrowser_cursorPositionChanged();
 
     void on_addButton_clicked();
-
-    void on_fileLoadButton_clicked();
 
     void on_deleteButton_clicked();
 

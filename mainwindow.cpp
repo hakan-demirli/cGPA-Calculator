@@ -1,7 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+//const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+const int MAX_COURSE_NAME_SIZE = 8;
+const int MAX_LETTER_SIZE = 2;
+const int MAX_CREDIT_SIZE = 4;
 
 std::vector<std::string> all_data_list;
 std::vector<std::string> fileList_vec;
@@ -21,11 +26,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->credit_input->setInputMethodHints(Qt::ImhPreferNumbers);
     ui->letter_input->setInputMethodHints(Qt::ImhPreferUppercase);
     QFontDatabase::addApplicationFont(":/new/DroidSansMono.ttf");
-    QFont font = QFont("DroidSansMono", 20, 1);
+    QFont font = QFont("DroidSansMono", 24, 1);
     ui->textBrowser->setFont(font);
     ui->folderBrowser->setFont(font);
 
     initialize_file_structure();
+
     file_open_and_read();
 
     update_textBrowser();
@@ -34,7 +40,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     update_file_list();
     ui->folderBrowser->append(fileList.join("\n"));
-
 }
 
 MainWindow::~MainWindow()
@@ -61,81 +66,70 @@ void MainWindow::on_textBrowser_cursorPositionChanged()
 
 void MainWindow::on_addButton_clicked()
 {
-    unsigned int index_of_course = std::distance(all_data_list.begin(), std::find(all_data_list.begin(), all_data_list.end(), ui->course_input->text().toStdString()));
-
-    std::stringstream stream;
-    double grade_add;
-    std::string letter_add = ui->letter_input->text().toStdString();
-
-    grade_add = Utility::calculate_grade(letter_add);
-    stream << std::fixed << std::setprecision(1) << grade_add;
-    std::string grade_add_str = stream.str();
-    stream.str(std::string());
-
-    std::string weight_str;
-    stream << std::fixed << std::setprecision(1) << ((ui->credit_input->text().toDouble())*(grade_add));
-    weight_str = stream.str();
-
-    float temp = ((all_list_size + 0.5 )/10);
-    all_list_size = 10 * floor(temp);
-
-    if (index_of_course >= all_data_list.size()){
-        if (all_data_list.size() <= all_list_size+10)
-            all_data_list.resize(all_list_size+11);
-        all_data_list[all_list_size+coursename] = "courseName";
-        all_data_list[all_list_size+coursename_data] = ui->course_input->text().toStdString();
-        all_data_list[all_list_size+credit] =  "credit";
-        all_data_list[all_list_size+credit_data] = ui->credit_input->text().toStdString();
-        all_data_list[all_list_size+letter] =  "letter";
-        all_data_list[all_list_size+letter_data] = ui->letter_input->text().toStdString();
-        all_data_list[all_list_size+grade] =  "grade";
-        all_data_list[all_list_size+grade_data] = grade_add_str;
-        all_data_list[all_list_size+weight] =  "weight";
-        all_data_list[all_list_size+weight_data] = weight_str;
-        all_list_size = all_list_size + 10;
-    }
-    else {
-        all_data_list[coursename_data + (block_number*10)] =  ui->course_input->text().toStdString();
-        all_data_list[letter_data + (block_number*10)] = ui->letter_input->text().toStdString();
-        all_data_list[credit_data + (block_number*10)] = ui->credit_input->text().toStdString();
-        all_data_list[grade_data + (block_number*10)] = grade_add_str;
-        all_data_list[weight_data + (block_number*10)] = weight_str;
-    }
-
-    std::string python_dictionary;
-    python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_list_size);
-
-    QFile file(fileName_full);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        exit(1);
-
-    QTextStream outStream(&file);
-    outStream << QString::fromStdString(python_dictionary);
-
-    file.close();
-    update_textBrowser();
-}
-
-void MainWindow::on_fileLoadButton_clicked()
-{
-    QString fileName_full_backup = fileName_full;
-    fileName_full = QFileDialog::getOpenFileName(this,
-                                                 tr("OpenJSON"), APPDATA_PATH, tr("Image Files (*.json *.txt)"));
-
-    if (!fileName_full.isEmpty())
+    if(ui->course_input->text().length() > MAX_COURSE_NAME_SIZE ||
+       ui->letter_input->text().length() > MAX_LETTER_SIZE ||
+       ui->credit_input->text().length() > MAX_CREDIT_SIZE)
     {
-        all_data_list = std::vector<std::string>();
-        line = "";
-        fileName_full = "";
-        file_open_and_read();
-        update_textBrowser();
     }else
-        fileName_full = fileName_full_backup;
+    {
+        unsigned int index_of_course = std::distance(all_data_list.begin(), std::find(all_data_list.begin(), all_data_list.end(), ui->course_input->text().toStdString()));
+
+        std::stringstream stream;
+        double grade_add;
+        std::string letter_add = ui->letter_input->text().toStdString();
+
+        grade_add = Utility::calculate_grade(letter_add);
+        stream << std::fixed << std::setprecision(1) << grade_add;
+        std::string grade_add_str = stream.str();
+        stream.str(std::string());
+
+        std::string weight_str;
+        stream << std::fixed << std::setprecision(1) << ((ui->credit_input->text().toDouble())*(grade_add));
+        weight_str = stream.str();
+
+        float temp = ((all_list_size + 0.5 )/10);
+        all_list_size = 10 * floor(temp);
+
+        if (index_of_course >= all_data_list.size()){
+            if (all_data_list.size() <= all_list_size+10)
+                all_data_list.resize(all_list_size+11);
+            all_data_list[all_list_size+coursename] = "courseName";
+            all_data_list[all_list_size+coursename_data] = ui->course_input->text().toStdString();
+            all_data_list[all_list_size+credit] =  "credit";
+            all_data_list[all_list_size+credit_data] = ui->credit_input->text().toStdString();
+            all_data_list[all_list_size+letter] =  "letter";
+            all_data_list[all_list_size+letter_data] = ui->letter_input->text().toStdString();
+            all_data_list[all_list_size+grade] =  "grade";
+            all_data_list[all_list_size+grade_data] = grade_add_str;
+            all_data_list[all_list_size+weight] =  "weight";
+            all_data_list[all_list_size+weight_data] = weight_str;
+            all_list_size = all_list_size + 10;
+        }
+        else {
+            all_data_list[coursename_data + (block_number*10)] =  ui->course_input->text().toStdString();
+            all_data_list[letter_data + (block_number*10)] = ui->letter_input->text().toStdString();
+            all_data_list[credit_data + (block_number*10)] = ui->credit_input->text().toStdString();
+            all_data_list[grade_data + (block_number*10)] = grade_add_str;
+            all_data_list[weight_data + (block_number*10)] = weight_str;
+        }
+
+        std::string python_dictionary;
+        python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_list_size);
+
+        QFile file(fileName_full);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+            exit(1);
+
+        QTextStream outStream(&file);
+        outStream << QString::fromStdString(python_dictionary);
+
+        file.close();
+        update_textBrowser();
+    }
 }
 
 void MainWindow::file_open_and_read()
 {
-
     QFile file(fileName_full);
     try {
         file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -157,11 +151,7 @@ void MainWindow::file_open_and_read()
         std::cerr << "PythonParser error" << std::endl;
         std::cerr << e.what() << std::endl;
     }
-
-
 }
-
-
 
 void MainWindow::update_textBrowser()
 {
@@ -185,14 +175,14 @@ void MainWindow::update_textBrowser()
         std::stringstream l_d;
         std::stringstream c_d;
         std::stringstream w_d;
-
+        char fill_character = ' ';
         for(unsigned int i = 0; i < all_list_size - 9; i = i + 10){
             MainWindow::html_add_row(display_html);
 
-            cn_d  << std::left  << all_data_list[coursename_data + i];
-            l_d   << std::right << std::setw(9) << all_data_list[letter_data + i];
-            c_d   << std::right << std::setw(9) << all_data_list[credit_data + i];
-            w_d   << std::right << std::setw(9) << all_data_list[weight_data + i];
+            cn_d  << std::left  << std::setw(MAX_COURSE_NAME_SIZE) << std::setfill(fill_character) << all_data_list[coursename_data + i];
+            l_d   << std::right << std::setw(7)  << std::setfill(fill_character) << all_data_list[letter_data + i];
+            c_d   << std::right << std::setw(8)  << std::setfill(fill_character) << all_data_list[credit_data + i];
+            w_d   << std::right << std::setw(8)  << std::setfill(fill_character) << all_data_list[weight_data + i] << std::right;
             Utility::replace(display_html, "%s", cn_d.str());
             Utility::replace(display_html, "%s", l_d.str());
             Utility::replace(display_html, "%s", c_d.str());
@@ -208,15 +198,11 @@ void MainWindow::update_textBrowser()
         std::cerr << e.what() << std::endl;
         return;
     }
-
-
 }
-
 
 void MainWindow::on_deleteButton_clicked()
 {
 
-    update_textBrowser_block_number();
     if (all_list_size - 10 < 5)
     {
 
@@ -245,7 +231,6 @@ void MainWindow::on_deleteButton_clicked()
     }
 
     ui->textBrowser_3->append(QString::number(block_number));
-
 }
 
 void MainWindow::on_folderBrowser_cursorPositionChanged()
@@ -297,43 +282,29 @@ void MainWindow::on_addFile_clicked()
 
 void MainWindow::on_deleteFile_clicked()
 {
-    if (fileList.size() <= 1 || 1 == ui->folderBrowser->textCursor().blockNumber())
+    if (fileList.size() <= 1 )     //|| 1 == ui->folderBrowser->textCursor().blockNumber())
     {
-        // There is a bug and I don't want to deal with it.
-        // So you can't delete the first index. ¯\_(ツ)_/¯
-        //-----fileBrowser----
-        // 0th
-        // 1st <---- crash
-        // 2nd
-        //--------------------
     }else
     {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, "Ahy!", "Yer are deletin' dis file, ain't yer?",
                                       QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-
+            std::cout << "0" <<std::endl;
             QFile file (fileName_full);
-            file.remove();
-
+            try {
+                file.remove();
+            } catch (std::exception &e) {
+                std::cerr << "file remove error" << std::endl;
+                std::cerr << e.what() << std::endl;
+            }
+            std::cout << "1" <<std::endl;
             update_file_list();
-            ui->folderBrowser->append(fileList.join("\n"));
-
-            try {
-                ui->folderBrowser->clear();
-            } catch (std::exception &e) {
-                std::cerr << "clear error delete_file" << std::endl;
-                std::cerr << e.what() << std::endl;
-            }
-
-            try {
-                ui->folderBrowser->append(fileList.join("\n"));
-            } catch (std::exception &e) {
-                std::cerr << "append error delete file error" << std::endl;
-                std::cerr << e.what() << std::endl;
-            }
-
+            std::cout << "2" <<std::endl;
+            update_file_browser();
+            std::cout << "3" <<std::endl;
         }
+        std::cout << "3" <<std::endl;
     }
 }
 
@@ -342,8 +313,6 @@ void MainWindow::update_file_list(){
     export_folder.setNameFilters(QStringList()<<"*.txt"<<"*.json");
     fileList = export_folder.entryList();
 }
-
-
 
 void MainWindow::update_file_browser(){
     ui->folderBrowser->clear();
@@ -355,15 +324,16 @@ void MainWindow::html_add_row(std::string& str)
     std::string four_rows =
         R"(
                                 <tr>
-                                    <td><pre>%s</pre></td>
-                                    <td><pre>%s</pre></td>
-                                    <td><pre>%s</pre></td>
-                                    <td><pre>%s</pre></td>
+                                    <td style="text-align:  left;"><pre style="line-height:1.4">%s</pre></td>
+                                    <td style="text-align: right;"><pre style="line-height:1.4">%s</pre></td>
+                                    <td style="text-align: right;"><pre style="line-height:1.4">%s</pre></td>
+                                    <td style="text-align: right;"><pre style="line-height:1.4">%s</pre></td>
                                 </tr>
                                 <!--%r%r-->
-                        )";
+        )";
     Utility::replace(str,"<!--%r%r-->", four_rows);
 }
+
 void MainWindow::update_textBrowser_block_number()
 {
     block_number = ui->textBrowser->textCursor().blockNumber();
