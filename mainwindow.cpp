@@ -19,6 +19,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->credit_input->setInputMethodHints(Qt::ImhPreferNumbers);
     ui->letter_input->setInputMethodHints(Qt::ImhPreferUppercase);
+    QFontDatabase::addApplicationFont(":/new/DroidSansMono.ttf");
+    QFont font = QFont("DroidSansMono", 20, 1);
+    ui->textBrowser->setFont(font);
+    ui->folderBrowser->setFont(font);
 
     QDir dir(m_path);
 
@@ -36,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
             std::cout << "can't create a default file" << std::endl;
             std::cerr << e.what() << std::endl;
             return;
-        }        
+        }
         QTextStream outStream(&file);
         outStream << QString::fromStdString(default_py_dic);
         file.close();
@@ -63,19 +67,22 @@ MainWindow::~MainWindow()
 void MainWindow::on_textBrowser_cursorPositionChanged()
 {
     block_number = ui->textBrowser->textCursor().blockNumber();
-
+    std::cout << block_number << std::endl;
     QTextCursor cur = ui->textBrowser->textCursor();
     QTextBlockFormat f;
     //QString text;
     //f.setBackground(Qt::red);
+    cur.movePosition(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+    cur.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
     cur.select(QTextCursor::LineUnderCursor);
+    //cur.select(QTextCursor::LineUnderCursor);
     cur.setBlockFormat(f);
     ui->textBrowser->setTextCursor(cur);
     //text = cur.selectedText();
 
-    ui->course_input->setText(QString::fromStdString(all_original[coursename_data + (block_number*10)]));
-    ui->letter_input->setText(QString::fromStdString(all_original[letter_data + (block_number*10)]));
-    ui->credit_input->setText(QString::fromStdString(all_original[credit_data + (block_number*10)]));
+    //ui->course_input->setText(QString::fromStdString(all_original[coursename_data + (block_number*10)]));
+    //ui->letter_input->setText(QString::fromStdString(all_original[letter_data + (block_number*10)]));
+    //ui->credit_input->setText(QString::fromStdString(all_original[credit_data + (block_number*10)]));
 }
 
 void MainWindow::on_addButton_clicked()
@@ -98,7 +105,7 @@ void MainWindow::on_addButton_clicked()
     if (index_of_course >= all_original.size()){
         //std::cout << "not here" << std::endl;
         if (all_original.size() <= all_list_size+10)
-              all_original.resize(all_list_size+11);
+            all_original.resize(all_list_size+11);
         all_original[all_list_size+coursename] = "courseName";
         all_original[all_list_size+coursename_data] = ui->course_input->text().toStdString();
         all_original[all_list_size+credit] =  "credit";
@@ -141,7 +148,7 @@ void MainWindow::on_fileLoadButton_clicked()
 {
     QString fileName_full_backup = fileName_full;
     fileName_full = QFileDialog::getOpenFileName(this,
-        tr("OpenJSON"), m_path, tr("Image Files (*.json *.txt)"));
+                                                 tr("OpenJSON"), m_path, tr("Image Files (*.json *.txt)"));
 
     if (!fileName_full.isEmpty())
     {
@@ -190,30 +197,51 @@ bool MainWindow::fileExists(QString m_path)
 
 void MainWindow::update_textBrowser()
 {
+    std::string display_html =
+                R"(
+                    <table style="width: 100%">
+                        <colgroup>
+                           <col span="1" style="width: 25%;">
+                           <col span="1" style="width: 25%;">
+                           <col span="1" style="width: 25%;">
+                           <col span="1" style="width: 25%;">
+                        </colgroup>
+                        <!-- (%r%r) these are row indicator comments. Don not delete -->
+                        <tbody>
+                            <!--%r%r-->
+                        </tbody>
+                    </table>
+                )";
     try {
-        ui->textBrowser->clear();
-    } catch (const std::bad_alloc &e) {
-        std::cerr << "clearing error" << std::endl;
-        std::cerr << e.what() << std::endl;
-    }
+        std::stringstream cn_d;
+        std::stringstream l_d;
+        std::stringstream c_d;
+        std::stringstream w_d;
 
-    try {
-        std::stringstream to_text_box;
         for(unsigned int i = 0; i < all_list_size - 9; i = i + 10){
+            html_add_row(display_html);
 
-
-            to_text_box  << std::left << std::setw(9) << all_display[coursename_data + i]
-                         << std::right << std::setw(9) << all_display[letter_data + i]
-                         << std::right << std::setw(9) << all_display[credit_data + i]
-                         << std::right << std::setw(9) << all_display[weight_data + i];
-            ui->textBrowser->append(QString::fromStdString(to_text_box.str()));
-            to_text_box.str("");
+            cn_d  << std::left  << std::setw(9) << all_display[coursename_data + i];
+            l_d   << std::right << std::setw(9) << all_display[letter_data + i];
+            c_d   << std::right << std::setw(9) << all_display[credit_data + i];
+            w_d   << std::right << std::setw(9) << all_display[weight_data + i];
+            replace(display_html, "%s", cn_d.str());
+            replace(display_html, "%s", l_d.str());
+            replace(display_html, "%s", c_d.str());
+            replace(display_html, "%s", w_d.str());
+            cn_d.str("");
+            l_d.str("");
+            c_d.str("");
+            w_d.str("");
         }
+        ui->textBrowser->setHtml(QString::fromStdString(display_html));
+        //std::cout << display_html <<std::endl;
     } catch (std::exception &e) {
         std::cout << "can't update textBrowser" << std::endl;
         std::cerr << e.what() << std::endl;
         return;
     }
+
 
 }
 double MainWindow::calculate_grade(std::string letter_add)
@@ -356,30 +384,30 @@ void MainWindow::on_deleteFile_clicked()
         reply = QMessageBox::question(this, "Ahy!", "Yer are deletin' dis file, ain't yer?",
                                       QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-          std::cout << "Yes was clicked";
-          std::cout << fileName_full.toStdString() <<std::endl;
-          QFile file (fileName_full);
-          file.remove();
+            std::cout << "Yes was clicked";
+            std::cout << fileName_full.toStdString() <<std::endl;
+            QFile file (fileName_full);
+            file.remove();
 
-          update_file_list();
-          ui->folderBrowser->append(fileList.join("\n"));
+            update_file_list();
+            ui->folderBrowser->append(fileList.join("\n"));
 
-          try {
-              ui->folderBrowser->clear();
-          } catch (std::exception &e) {
-              std::cerr << "clear error delete_file" << std::endl;
-              std::cerr << e.what() << std::endl;
-          }
+            try {
+                ui->folderBrowser->clear();
+            } catch (std::exception &e) {
+                std::cerr << "clear error delete_file" << std::endl;
+                std::cerr << e.what() << std::endl;
+            }
 
-          try {
-              ui->folderBrowser->append(fileList.join("\n"));
-          } catch (std::exception &e) {
-              std::cerr << "append error delete file error" << std::endl;
-              std::cerr << e.what() << std::endl;
-          }
+            try {
+                ui->folderBrowser->append(fileList.join("\n"));
+            } catch (std::exception &e) {
+                std::cerr << "append error delete file error" << std::endl;
+                std::cerr << e.what() << std::endl;
+            }
 
         } else {
-          std::cout << "Yes was *not* clicked";
+            std::cout << "Yes was *not* clicked";
         }
     }
 }
@@ -405,4 +433,36 @@ QString MainWindow::random_string(int length = 13)
 void MainWindow::update_file_browser(){
     ui->folderBrowser->clear();
     ui->folderBrowser->append(fileList.join("\n"));
+}
+
+bool MainWindow::replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
+
+void MainWindow::replaceAll(std::string& str, const std::string& from, const std::string& to) {
+    if(from.empty())
+        return;
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+    }
+}
+void MainWindow::html_add_row(std::string& str)
+{
+    std::string four_rows =
+        R"(
+                                <tr>
+                                    <td><pre>%s</pre></td>
+                                    <td><pre>%s</pre></td>
+                                    <td><pre>%s</pre></td>
+                                    <td><pre>%s</pre></td>
+                                </tr>
+                                <!--%r%r-->
+                        )";
+    replace(str,"<!--%r%r-->", four_rows);
 }

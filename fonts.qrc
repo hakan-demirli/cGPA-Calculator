@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/fonts">
+        <file>cour.ttf</file>
+        <file>DroidSansMono.ttf</file>
+    </qresource>
+</RCC>

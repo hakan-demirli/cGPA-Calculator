@@ -61,11 +61,15 @@ private:
     void update_file_list();
     static QString random_string(int);
     void update_file_browser();
+    void replaceAll(std::string&, const std::string&, const std::string&);
+    bool replace(std::string&, const std::string&, const std::string&);
+    void html_add_row(std::string&);
 
 private:
     const QString m_path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation); // + ("/gpa");
     const std::vector<std::string> m_validLetters = {"AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF", "NA", "U", "P", "W", "I", "EX", "S"};
     const std::string default_py_dic = R"({"data": [{"courseName": "CENG", "credit": 0.0, "letter": "FF", "grade": 0.0, "weight": 0.0}], "date": "2021-08-07_13.59.30"})";
+
     //const std::vector<std::string> m_creditZeroLetters = {"U", "P", "W", "I", "EX", "S"};
 
 public:
