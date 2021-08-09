@@ -11,11 +11,13 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    pythonparser.cpp
+    pythonparser.cpp \
+    utility.cpp
 
 HEADERS += \
     mainwindow.h \
-    pythonparser.h
+    pythonparser.h \
+    utility.h
 
 FORMS += \
     mainwindow.ui

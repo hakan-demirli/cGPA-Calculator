@@ -16,9 +16,9 @@ public:
     PythonParser();
     static int parse_python_dictionary(std::vector<std::string> &all, std::string str);
     static std::string write_python_dictionary(std::vector<std::string> &all, int size);
-    static void ReplaceStringInPlace(std::string& subject, const std::string& search, const std::string& replace);
 
 public:
+    static const std::string DEFAULT_PYTHON_DICTIONARY;
     enum {
          hugepp, // don't touch it
          coursename,

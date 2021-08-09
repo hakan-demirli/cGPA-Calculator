@@ -1,5 +1,7 @@
 #include "pythonparser.h"
 
+const std::string PythonParser::DEFAULT_PYTHON_DICTIONARY = R"({"data": [{"courseName": "CENG", "credit": 0.0, "letter": "FF", "grade": 0.0, "weight": 0.0}], "date": "1970-00-00_00.00.00"})";
+
 PythonParser::PythonParser()
 {
 
@@ -63,11 +65,3 @@ std::string PythonParser::write_python_dictionary(std::vector<std::string> &all,
     return str;
 }
 
-void PythonParser::ReplaceStringInPlace(std::string& subject, const std::string& search, const std::string& replace)
-{
-    size_t pos = 0;
-    while ((pos = subject.find(search, pos)) != std::string::npos) {
-         subject.replace(pos, search.length(), replace);
-         pos += replace.length();
-    }
-}

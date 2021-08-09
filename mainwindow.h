@@ -23,6 +23,7 @@
 #include <sstream>
 
 #include "pythonparser.h"
+#include "utility.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -54,22 +55,21 @@ private slots:
 
 private:
     void file_open_and_read(QString &);
-    static bool fileExists(QString);
+
     void update_textBrowser();
-    double calculate_grade(std::string);
+
     void file_Load();
+
     void update_file_list();
-    static QString random_string(int);
+
     void update_file_browser();
-    void replaceAll(std::string&, const std::string&, const std::string&);
-    bool replace(std::string&, const std::string&, const std::string&);
-    void html_add_row(std::string&);
+
+    void html_add_row(std::string& str);
+
+    void update_all_data_list_block_number();
 
 public:
-    const QString m_path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation); // + ("/gpa");
-    const std::vector<std::string> m_validLetters = {"AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF", "NA", "U", "P", "W", "I", "EX", "S"};
-    const std::string default_py_dic = R"({"data": [{"courseName": "CENG", "credit": 0.0, "letter": "FF", "grade": 0.0, "weight": 0.0}], "date": "2021-08-07_13.59.30"})";
-
+    static const QString APPDATA_PATH;
     //const std::vector<std::string> m_creditZeroLetters = {"U", "P", "W", "I", "EX", "S"};
 
 public:

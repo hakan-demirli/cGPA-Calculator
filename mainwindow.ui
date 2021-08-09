@@ -9256,7 +9256,7 @@
                       </palette>
                      </property>
                      <property name="text">
-                      <string>Add</string>
+                      <string>Add Row</string>
                      </property>
                     </widget>
                    </item>
@@ -9765,7 +9765,7 @@
                       </palette>
                      </property>
                      <property name="text">
-                      <string>Delete</string>
+                      <string>Delete Row</string>
                      </property>
                     </widget>
                    </item>
@@ -11292,7 +11292,7 @@
                       </palette>
                      </property>
                      <property name="text">
-                      <string>Load</string>
+                      <string>Load File</string>
                      </property>
                     </widget>
                    </item>
