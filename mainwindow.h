@@ -54,11 +54,9 @@ private slots:
     void on_deleteFile_clicked();
 
 private:
-    void file_open_and_read(QString &);
+    void file_open_and_read();
 
     void update_textBrowser();
-
-    void file_Load();
 
     void update_file_list();
 
@@ -66,7 +64,9 @@ private:
 
     void html_add_row(std::string& str);
 
-    void update_all_data_list_block_number();
+    void update_textBrowser_block_number();
+
+    void initialize_file_structure();
 
 public:
     static const QString APPDATA_PATH;

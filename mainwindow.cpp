@@ -3,12 +3,11 @@
 
 const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 
-QStringList fileList;
+std::vector<std::string> all_data_list;
 std::vector<std::string> fileList_vec;
+QStringList fileList;
 QString fileName_full;
 QString line;
-
-std::vector<std::string> all_data_list;
 
 unsigned int all_list_size;
 unsigned int block_number;
@@ -26,32 +25,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->textBrowser->setFont(font);
     ui->folderBrowser->setFont(font);
 
-    QDir dir(APPDATA_PATH);
-    if (!dir.exists())
-        dir.mkdir(APPDATA_PATH);
-
-    fileName_full = APPDATA_PATH + "/default.txt";
-
-    if(!Utility::fileExists(fileName_full))
-    {
-        QFile file(fileName_full);
-        try {
-            file.open(QIODevice::WriteOnly | QIODevice::Text);
-        } catch (std::exception &e) {
-            std::cerr << "can't create a default file: " << e.what() <<std::endl;
-            exit(1);
-        }
-        QTextStream outStream(&file);
-        outStream << QString::fromStdString(PythonParser::DEFAULT_PYTHON_DICTIONARY);
-        file.close();
-    }
-
-    file_open_and_read(line);
-    all_list_size = PythonParser::parse_python_dictionary(all_data_list, line.toStdString());
-
-    update_all_data_list_block_number();
+    initialize_file_structure();
+    file_open_and_read();
 
     update_textBrowser();
+
+    update_textBrowser_block_number();
 
     update_file_list();
     ui->folderBrowser->append(fileList.join("\n"));
@@ -65,7 +44,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_textBrowser_cursorPositionChanged()
 {
-    update_all_data_list_block_number();
+    update_textBrowser_block_number();
     QTextCursor cur = ui->textBrowser->textCursor();
     QTextBlockFormat f;
     //QString text;
@@ -83,17 +62,20 @@ void MainWindow::on_textBrowser_cursorPositionChanged()
 void MainWindow::on_addButton_clicked()
 {
     unsigned int index_of_course = std::distance(all_data_list.begin(), std::find(all_data_list.begin(), all_data_list.end(), ui->course_input->text().toStdString()));
-    std::string python_dictionary;
+
+    std::stringstream stream;
     double grade_add;
     std::string letter_add = ui->letter_input->text().toStdString();
+
     grade_add = Utility::calculate_grade(letter_add);
-    std::stringstream stream;
     stream << std::fixed << std::setprecision(1) << grade_add;
     std::string grade_add_str = stream.str();
-    std::string weight_str;
     stream.str(std::string());
+
+    std::string weight_str;
     stream << std::fixed << std::setprecision(1) << ((ui->credit_input->text().toDouble())*(grade_add));
     weight_str = stream.str();
+
     float temp = ((all_list_size + 0.5 )/10);
     all_list_size = 10 * floor(temp);
 
@@ -120,11 +102,12 @@ void MainWindow::on_addButton_clicked()
         all_data_list[weight_data + (block_number*10)] = weight_str;
     }
 
+    std::string python_dictionary;
     python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_list_size);
 
     QFile file(fileName_full);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        assert(0);
+        exit(1);
 
     QTextStream outStream(&file);
     outStream << QString::fromStdString(python_dictionary);
@@ -144,16 +127,16 @@ void MainWindow::on_fileLoadButton_clicked()
         all_data_list = std::vector<std::string>();
         line = "";
         fileName_full = "";
-        file_Load();
+        file_open_and_read();
         update_textBrowser();
     }else
         fileName_full = fileName_full_backup;
 }
 
-void MainWindow::file_open_and_read(QString &line)
+void MainWindow::file_open_and_read()
 {
-    QFile file(fileName_full);
 
+    QFile file(fileName_full);
     try {
         file.open(QIODevice::ReadOnly | QIODevice::Text);
     } catch (std::exception &e) {
@@ -167,6 +150,15 @@ void MainWindow::file_open_and_read(QString &line)
         line = in.readLine();
     }
     file.close();
+
+    try {
+        all_list_size = PythonParser::parse_python_dictionary(all_data_list, line.toStdString());
+    } catch (const std::bad_alloc &e) {
+        std::cerr << "PythonParser error" << std::endl;
+        std::cerr << e.what() << std::endl;
+    }
+
+
 }
 
 
@@ -224,7 +216,7 @@ void MainWindow::update_textBrowser()
 void MainWindow::on_deleteButton_clicked()
 {
 
-    update_all_data_list_block_number();
+    update_textBrowser_block_number();
     if (all_list_size - 10 < 5)
     {
 
@@ -242,7 +234,7 @@ void MainWindow::on_deleteButton_clicked()
 
         QFile file(fileName_full);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-            assert(0);
+            exit(1);
 
         QTextStream outStream(&file);
         outStream << QString::fromStdString(python_dictionary);
@@ -268,27 +260,10 @@ void MainWindow::on_folderBrowser_cursorPositionChanged()
 
     fileName_full = APPDATA_PATH + "/" +QString::fromStdString(fileList.at(file_number).toStdString());
 
-    file_Load();
+    file_open_and_read();
 
     update_textBrowser();
 
-}
-
-void MainWindow::file_Load()
-{
-    try {
-        file_open_and_read(line);
-    } catch (std::exception &e) {
-        std::cerr << "file_open_and_read error" << std::endl;
-        std::cerr << e.what() << std::endl;
-    }
-
-    try {
-        all_list_size = PythonParser::parse_python_dictionary(all_data_list, line.toStdString());
-    } catch (const std::bad_alloc &e) {
-        std::cerr << "PythonParser error" << std::endl;
-        std::cerr << e.what() << std::endl;
-    }
 }
 
 void MainWindow::on_addFile_clicked()
@@ -310,9 +285,9 @@ void MainWindow::on_addFile_clicked()
         file.close();
     }
 
-    file_open_and_read(line);
-    all_list_size = PythonParser::parse_python_dictionary(all_data_list, line.toStdString());
-    update_all_data_list_block_number();
+    file_open_and_read();
+
+    update_textBrowser_block_number();
     update_textBrowser();
 
     update_file_list();
@@ -389,12 +364,35 @@ void MainWindow::html_add_row(std::string& str)
                         )";
     Utility::replace(str,"<!--%r%r-->", four_rows);
 }
-void MainWindow::update_all_data_list_block_number()
+void MainWindow::update_textBrowser_block_number()
 {
     block_number = ui->textBrowser->textCursor().blockNumber();
     block_number = ((int)block_number-1)/4;
     if(block_number == (all_list_size/10))
     {
         block_number -= 1;
+    }
+}
+
+void MainWindow::initialize_file_structure()
+{
+    QDir dir(APPDATA_PATH);
+    if (!dir.exists())
+        dir.mkdir(APPDATA_PATH);
+
+    fileName_full = APPDATA_PATH + "/default.txt";
+
+    if(!Utility::fileExists(fileName_full))
+    {
+        QFile file(fileName_full);
+        try {
+            file.open(QIODevice::WriteOnly | QIODevice::Text);
+        } catch (std::exception &e) {
+            std::cerr << "can't create a default file: " << e.what() <<std::endl;
+            exit(1);
+        }
+        QTextStream outStream(&file);
+        outStream << QString::fromStdString(PythonParser::DEFAULT_PYTHON_DICTIONARY);
+        file.close();
     }
 }
