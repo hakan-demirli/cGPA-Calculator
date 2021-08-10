@@ -5,7 +5,7 @@
 const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/cgpa";
 
 const int MAX_COURSE_NAME_SIZE = 8;
-const int MAX_LETTER_SIZE = 2;
+
 const int MAX_CREDIT_SIZE = 4;
 
 std::vector<std::string> all_data_list;
@@ -71,66 +71,72 @@ void MainWindow::on_textBrowser_cursorPositionChanged()
 
 void MainWindow::on_addButton_clicked()
 {
+    std::vector <std::string> temp_valid_letters = Utility::VALID_LETTERS;
+    unsigned int index_of_letter = std::distance(temp_valid_letters.begin(), std::find(temp_valid_letters.begin(), temp_valid_letters.end(), ui->course_input->text().toStdString()));
+
+    if (index_of_letter >= temp_valid_letters.size())
+        return;
+
     if(ui->course_input->text().length() > MAX_COURSE_NAME_SIZE ||
-       ui->letter_input->text().length() > MAX_LETTER_SIZE ||
        ui->credit_input->text().length() > MAX_CREDIT_SIZE)
-    {
-    }else
-    {
-        unsigned int index_of_course = std::distance(all_data_list.begin(), std::find(all_data_list.begin(), all_data_list.end(), ui->course_input->text().toStdString()));
+        return;
 
-        std::stringstream stream;
-        double grade_add;
-        std::string letter_add = ui->letter_input->text().toStdString();
+    if(std::stod(ui->credit_input->text().toStdString()) < 0)
+        return;
 
-        grade_add = Utility::calculate_grade(letter_add);
-        stream << std::fixed << std::setprecision(1) << grade_add;
-        std::string grade_add_str = stream.str();
-        stream.str(std::string());
+    unsigned int index_of_course = std::distance(all_data_list.begin(), std::find(all_data_list.begin(), all_data_list.end(), ui->course_input->text().toStdString()));
 
-        std::string weight_str;
-        stream << std::fixed << std::setprecision(1) << ((ui->credit_input->text().toDouble())*(grade_add));
-        weight_str = stream.str();
+    std::stringstream stream;
+    double grade_add;
+    std::string letter_add = ui->letter_input->text().toStdString();
 
-        float temp = ((all_data_size + 0.5 )/10);
-        all_data_size = 10 * floor(temp);
+    grade_add = Utility::calculate_grade(letter_add);
+    stream << std::fixed << std::setprecision(1) << grade_add;
+    std::string grade_add_str = stream.str();
+    stream.str(std::string());
 
-        if (index_of_course >= all_data_list.size()){
-            if (all_data_list.size() <= all_data_size+10)
-                all_data_list.resize(all_data_size+11);
-            all_data_list[all_data_size+coursename] = "courseName";
-            all_data_list[all_data_size+coursename_data] = ui->course_input->text().toStdString();
-            all_data_list[all_data_size+credit] =  "credit";
-            all_data_list[all_data_size+credit_data] = ui->credit_input->text().toStdString();
-            all_data_list[all_data_size+letter] =  "letter";
-            all_data_list[all_data_size+letter_data] = ui->letter_input->text().toStdString();
-            all_data_list[all_data_size+grade] =  "grade";
-            all_data_list[all_data_size+grade_data] = grade_add_str;
-            all_data_list[all_data_size+weight] =  "weight";
-            all_data_list[all_data_size+weight_data] = weight_str;
-            all_data_size = all_data_size + 10;
-        }
-        else {
-            all_data_list[coursename_data + (block_number*10)] =  ui->course_input->text().toStdString();
-            all_data_list[letter_data + (block_number*10)] = ui->letter_input->text().toStdString();
-            all_data_list[credit_data + (block_number*10)] = ui->credit_input->text().toStdString();
-            all_data_list[grade_data + (block_number*10)] = grade_add_str;
-            all_data_list[weight_data + (block_number*10)] = weight_str;
-        }
+    std::string weight_str;
+    stream << std::fixed << std::setprecision(1) << ((ui->credit_input->text().toDouble())*(grade_add));
+    weight_str = stream.str();
 
-        std::string python_dictionary;
-        python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_data_size);
+    float temp = ((all_data_size + 0.5 )/10);
+    all_data_size = 10 * floor(temp);
 
-        QFile file(fileName_full);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-            exit(1);
-
-        QTextStream outStream(&file);
-        outStream << QString::fromStdString(python_dictionary);
-
-        file.close();
-        update_textBrowser();
+    if (index_of_course >= all_data_list.size()){
+        if (all_data_list.size() <= all_data_size+10)
+            all_data_list.resize(all_data_size+11);
+        all_data_list[all_data_size+coursename] = "courseName";
+        all_data_list[all_data_size+coursename_data] = ui->course_input->text().toStdString();
+        all_data_list[all_data_size+credit] =  "credit";
+        all_data_list[all_data_size+credit_data] = ui->credit_input->text().toStdString();
+        all_data_list[all_data_size+letter] =  "letter";
+        all_data_list[all_data_size+letter_data] = ui->letter_input->text().toStdString();
+        all_data_list[all_data_size+grade] =  "grade";
+        all_data_list[all_data_size+grade_data] = grade_add_str;
+        all_data_list[all_data_size+weight] =  "weight";
+        all_data_list[all_data_size+weight_data] = weight_str;
+        all_data_size = all_data_size + 10;
     }
+    else {
+        all_data_list[coursename_data + (block_number*10)] =  ui->course_input->text().toStdString();
+        all_data_list[letter_data + (block_number*10)] = ui->letter_input->text().toStdString();
+        all_data_list[credit_data + (block_number*10)] = ui->credit_input->text().toStdString();
+        all_data_list[grade_data + (block_number*10)] = grade_add_str;
+        all_data_list[weight_data + (block_number*10)] = weight_str;
+    }
+
+    std::string python_dictionary;
+    python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_data_size);
+
+    QFile file(fileName_full);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        exit(1);
+
+    QTextStream outStream(&file);
+    outStream << QString::fromStdString(python_dictionary);
+
+    file.close();
+    update_textBrowser();
 }
 
 void MainWindow::file_open_and_read()
