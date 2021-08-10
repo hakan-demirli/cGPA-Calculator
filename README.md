@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-    <a href="  ">Download</a>!
+    <a href="https://github.com/hakan-demirli/cGPA-Calculator/releases/download/v1.0/cGPA_v1.0.apk">Download</a>!
 </p>
 
 
