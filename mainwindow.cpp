@@ -26,13 +26,16 @@ MainWindow::MainWindow(QWidget *parent)
     ui->credit_input->setInputMethodHints(Qt::ImhPreferNumbers);
     ui->letter_input->setInputMethodHints(Qt::ImhPreferUppercase);
     QFontDatabase::addApplicationFont(":/new/DroidSansMono.ttf");
-    QFont font = QFont("DroidSansMono", 24, 1);
-    ui->textBrowser->setFont(font);
-    ui->folderBrowser->setFont(font);
+    ui->textBrowser->setFont(QFont("DroidSansMono", 24, 1));
+    ui->fileBrowser->setFont(QFont("DroidSansMono", 20, 1));
 
     ui->textBrowser->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->textBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     QScroller::grabGesture(ui->textBrowser, QScroller::LeftMouseButtonGesture);
+
+    ui->fileBrowser->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->fileBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QScroller::grabGesture(ui->fileBrowser, QScroller::LeftMouseButtonGesture);
 
     initialize_file_structure();
 
@@ -43,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
     update_textBrowser_block_number();
 
     update_file_list();
-    ui->folderBrowser->append(fileList.join("\n"));
+    ui->fileBrowser->append(fileList.join("\n"));
 }
 
 MainWindow::~MainWindow()
@@ -243,15 +246,15 @@ void MainWindow::on_deleteButton_clicked()
     }
 }
 
-void MainWindow::on_folderBrowser_cursorPositionChanged()
+void MainWindow::on_fileBrowser_cursorPositionChanged()
 {
     update_file_list();
-    unsigned int file_number = ui->folderBrowser->textCursor().blockNumber();
-    QTextCursor cur = ui->folderBrowser->textCursor();
+    unsigned int file_number = ui->fileBrowser->textCursor().blockNumber();
+    QTextCursor cur = ui->fileBrowser->textCursor();
     QTextBlockFormat f;
     cur.select(QTextCursor::LineUnderCursor);
     cur.setBlockFormat(f);
-    ui->folderBrowser->setTextCursor(cur);
+    ui->fileBrowser->setTextCursor(cur);
 
     fileName_full = APPDATA_PATH + "/" +QString::fromStdString(fileList.at(file_number).toStdString());
 
@@ -263,7 +266,8 @@ void MainWindow::on_folderBrowser_cursorPositionChanged()
 
 void MainWindow::on_addFile_clicked()
 {
-    fileName_full = APPDATA_PATH + "/" + Utility::random_string(13) + ".txt";
+    QDateTime currentDate = QDateTime::currentDateTime();
+    fileName_full = APPDATA_PATH + "/" + currentDate.toString("yyyy-MM-dd_HH.mm.ss") + ".txt";
 
     if(!Utility::fileExists(fileName_full))
     {
@@ -292,7 +296,7 @@ void MainWindow::on_addFile_clicked()
 
 void MainWindow::on_deleteFile_clicked()
 {
-    if (fileList.size() <= 1 )     //|| 1 == ui->folderBrowser->textCursor().blockNumber())
+    if (fileList.size() <= 1 )     //|| 1 == ui->fileBrowser->textCursor().blockNumber())
     {
     }else
     {
@@ -325,8 +329,8 @@ void MainWindow::update_file_list(){
 }
 
 void MainWindow::update_file_browser(){
-    ui->folderBrowser->clear();
-    ui->folderBrowser->append(fileList.join("\n"));
+    ui->fileBrowser->clear();
+    ui->fileBrowser->append(fileList.join("\n"));
 }
 
 void MainWindow::html_add_row(std::string& str)
@@ -360,10 +364,18 @@ void MainWindow::initialize_file_structure()
     if (!dir.exists())
         dir.mkdir(APPDATA_PATH);
 
-    fileName_full = APPDATA_PATH + "/my_courses.txt";
+    update_file_list();
+    if (fileList.isEmpty()){
+        QDateTime currentDate = QDateTime::currentDateTime();
+        fileName_full = APPDATA_PATH + "/" + currentDate.toString("yyyy-MM-dd_HH.mm.ss") + ".txt";
+    }
+    else
+        fileName_full = APPDATA_PATH + "/" + QString::fromStdString(fileList.at(0).toStdString());
 
     if(!Utility::fileExists(fileName_full))
     {
+
+
         QFile file(fileName_full);
         try {
             file.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -379,7 +391,8 @@ void MainWindow::initialize_file_structure()
 
 void MainWindow::update_cgpa()
 {
-    double sum_weight, sum_credit;
+    double sum_weight = 0;
+    double sum_credit = 0;
 
     for(unsigned int i = 0; i < all_data_size - 9; i = i + 10){
 

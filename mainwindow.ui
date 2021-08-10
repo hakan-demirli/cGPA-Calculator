@@ -7224,7 +7224,7 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QTextBrowser" name="folderBrowser">
+                 <widget class="QTextBrowser" name="fileBrowser">
                   <property name="palette">
                    <palette>
                     <active>

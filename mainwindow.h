@@ -47,7 +47,7 @@ private slots:
 
     void on_deleteButton_clicked();
 
-    void on_folderBrowser_cursorPositionChanged();
+    void on_fileBrowser_cursorPositionChanged();
 
     void on_addFile_clicked();
 
