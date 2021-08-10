@@ -75,10 +75,10 @@ void MainWindow::on_textBrowser_cursorPositionChanged()
 void MainWindow::on_addButton_clicked()
 {
     std::vector <std::string> temp_valid_letters = Utility::VALID_LETTERS;
-    unsigned int index_of_letter = std::distance(temp_valid_letters.begin(), std::find(temp_valid_letters.begin(), temp_valid_letters.end(), ui->course_input->text().toStdString()));
-
-    if (index_of_letter >= temp_valid_letters.size())
+    if (!(std::find(Utility::VALID_LETTERS.begin(), Utility::VALID_LETTERS.end(), ui->letter_input->text().toStdString()) != Utility::VALID_LETTERS.end()))
+    {// Element not in vector.
         return;
+    }
 
     if(ui->course_input->text().length() > MAX_COURSE_NAME_SIZE ||
        ui->credit_input->text().length() > MAX_CREDIT_SIZE)
