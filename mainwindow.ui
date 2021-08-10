@@ -1547,6 +1547,9 @@
            </disabled>
           </palette>
          </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
         </widget>
        </item>
        <item>
@@ -10791,7 +10794,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QTextBrowser" name="textBrowser_3">
+                 <widget class="QTextBrowser" name="cgpaBrowser">
                   <property name="palette">
                    <palette>
                     <active>
@@ -11287,6 +11290,11 @@
                      </colorrole>
                     </disabled>
                    </palette>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>36</pointsize>
+                   </font>
                   </property>
                  </widget>
                 </item>

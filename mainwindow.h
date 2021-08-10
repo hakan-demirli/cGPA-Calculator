@@ -12,6 +12,7 @@
 #include <QStyle>
 #include <QFontDatabase>
 #include <QtAndroid>
+#include <QScroller>
 
 #include <string>
 #include <iostream>
@@ -66,6 +67,8 @@ private:
     void update_textBrowser_block_number();
 
     void initialize_file_structure();
+
+    void update_cgpa();
 
 public:
     static const QString APPDATA_PATH;

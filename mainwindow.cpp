@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 
 //const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+const QString MainWindow::APPDATA_PATH = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/cgpa";
 
 const int MAX_COURSE_NAME_SIZE = 8;
 const int MAX_LETTER_SIZE = 2;
@@ -14,7 +14,7 @@ QStringList fileList;
 QString fileName_full;
 QString line;
 
-unsigned int all_list_size;
+unsigned int all_data_size;
 unsigned int block_number;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -29,6 +29,10 @@ MainWindow::MainWindow(QWidget *parent)
     QFont font = QFont("DroidSansMono", 24, 1);
     ui->textBrowser->setFont(font);
     ui->folderBrowser->setFont(font);
+
+    ui->textBrowser->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->textBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QScroller::grabGesture(ui->textBrowser, QScroller::LeftMouseButtonGesture);
 
     initialize_file_structure();
 
@@ -62,6 +66,7 @@ void MainWindow::on_textBrowser_cursorPositionChanged()
     ui->course_input->setText(QString::fromStdString(all_data_list[coursename_data + (block_number*10)]));
     ui->letter_input->setText(QString::fromStdString(all_data_list[letter_data + (block_number*10)]));
     ui->credit_input->setText(QString::fromStdString(all_data_list[credit_data + (block_number*10)]));
+    update_cgpa();
 }
 
 void MainWindow::on_addButton_clicked()
@@ -87,23 +92,23 @@ void MainWindow::on_addButton_clicked()
         stream << std::fixed << std::setprecision(1) << ((ui->credit_input->text().toDouble())*(grade_add));
         weight_str = stream.str();
 
-        float temp = ((all_list_size + 0.5 )/10);
-        all_list_size = 10 * floor(temp);
+        float temp = ((all_data_size + 0.5 )/10);
+        all_data_size = 10 * floor(temp);
 
         if (index_of_course >= all_data_list.size()){
-            if (all_data_list.size() <= all_list_size+10)
-                all_data_list.resize(all_list_size+11);
-            all_data_list[all_list_size+coursename] = "courseName";
-            all_data_list[all_list_size+coursename_data] = ui->course_input->text().toStdString();
-            all_data_list[all_list_size+credit] =  "credit";
-            all_data_list[all_list_size+credit_data] = ui->credit_input->text().toStdString();
-            all_data_list[all_list_size+letter] =  "letter";
-            all_data_list[all_list_size+letter_data] = ui->letter_input->text().toStdString();
-            all_data_list[all_list_size+grade] =  "grade";
-            all_data_list[all_list_size+grade_data] = grade_add_str;
-            all_data_list[all_list_size+weight] =  "weight";
-            all_data_list[all_list_size+weight_data] = weight_str;
-            all_list_size = all_list_size + 10;
+            if (all_data_list.size() <= all_data_size+10)
+                all_data_list.resize(all_data_size+11);
+            all_data_list[all_data_size+coursename] = "courseName";
+            all_data_list[all_data_size+coursename_data] = ui->course_input->text().toStdString();
+            all_data_list[all_data_size+credit] =  "credit";
+            all_data_list[all_data_size+credit_data] = ui->credit_input->text().toStdString();
+            all_data_list[all_data_size+letter] =  "letter";
+            all_data_list[all_data_size+letter_data] = ui->letter_input->text().toStdString();
+            all_data_list[all_data_size+grade] =  "grade";
+            all_data_list[all_data_size+grade_data] = grade_add_str;
+            all_data_list[all_data_size+weight] =  "weight";
+            all_data_list[all_data_size+weight_data] = weight_str;
+            all_data_size = all_data_size + 10;
         }
         else {
             all_data_list[coursename_data + (block_number*10)] =  ui->course_input->text().toStdString();
@@ -114,7 +119,7 @@ void MainWindow::on_addButton_clicked()
         }
 
         std::string python_dictionary;
-        python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_list_size);
+        python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_data_size);
 
         QFile file(fileName_full);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -146,7 +151,7 @@ void MainWindow::file_open_and_read()
     file.close();
 
     try {
-        all_list_size = PythonParser::parse_python_dictionary(all_data_list, line.toStdString());
+        all_data_size = PythonParser::parse_python_dictionary(all_data_list, line.toStdString());
     } catch (const std::bad_alloc &e) {
         std::cerr << "PythonParser error" << std::endl;
         std::cerr << e.what() << std::endl;
@@ -176,8 +181,8 @@ void MainWindow::update_textBrowser()
         std::stringstream c_d;
         std::stringstream w_d;
         char fill_character = ' ';
-        for(unsigned int i = 0; i < all_list_size - 9; i = i + 10){
-            MainWindow::html_add_row(display_html);
+        for(unsigned int i = 0; i < all_data_size - 9; i = i + 10){
+            html_add_row(display_html);
 
             cn_d  << std::left  << std::setw(MAX_COURSE_NAME_SIZE) << std::setfill(fill_character) << all_data_list[coursename_data + i];
             l_d   << std::right << std::setw(7)  << std::setfill(fill_character) << all_data_list[letter_data + i];
@@ -193,6 +198,7 @@ void MainWindow::update_textBrowser()
             w_d.str("");
         }
         ui->textBrowser->setHtml(QString::fromStdString(display_html));
+
     } catch (std::exception &e) {
         std::cerr << "can't update textBrowser" << std::endl;
         std::cerr << e.what() << std::endl;
@@ -203,12 +209,12 @@ void MainWindow::update_textBrowser()
 void MainWindow::on_deleteButton_clicked()
 {
 
-    if (all_list_size - 10 < 5)
+    if (all_data_size - 10 < 5)
     {
 
     }else
     {
-        all_list_size = all_list_size - 10;
+        all_data_size = all_data_size - 10;
         int index = block_number*10;
         int delete_size = 10;
         std::rotate(all_data_list.begin()+index, all_data_list.begin()+index+delete_size, all_data_list.end());
@@ -216,7 +222,7 @@ void MainWindow::on_deleteButton_clicked()
 
         std::string python_dictionary;
 
-        python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_list_size);
+        python_dictionary = PythonParser::write_python_dictionary(all_data_list, all_data_size);
 
         QFile file(fileName_full);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -229,8 +235,6 @@ void MainWindow::on_deleteButton_clicked()
 
         update_textBrowser();
     }
-
-    ui->textBrowser_3->append(QString::number(block_number));
 }
 
 void MainWindow::on_folderBrowser_cursorPositionChanged()
@@ -338,7 +342,7 @@ void MainWindow::update_textBrowser_block_number()
 {
     block_number = ui->textBrowser->textCursor().blockNumber();
     block_number = ((int)block_number-1)/4;
-    if(block_number == (all_list_size/10))
+    if(block_number == (all_data_size/10))
     {
         block_number -= 1;
     }
@@ -350,7 +354,7 @@ void MainWindow::initialize_file_structure()
     if (!dir.exists())
         dir.mkdir(APPDATA_PATH);
 
-    fileName_full = APPDATA_PATH + "/default.txt";
+    fileName_full = APPDATA_PATH + "/my_courses.txt";
 
     if(!Utility::fileExists(fileName_full))
     {
@@ -365,4 +369,39 @@ void MainWindow::initialize_file_structure()
         outStream << QString::fromStdString(PythonParser::DEFAULT_PYTHON_DICTIONARY);
         file.close();
     }
+}
+
+void MainWindow::update_cgpa()
+{
+    double sum_weight, sum_credit;
+
+    for(unsigned int i = 0; i < all_data_size - 9; i = i + 10){
+
+        sum_weight += std::stod(all_data_list[weight_data + i]);
+        sum_credit += std::stod(all_data_list[credit_data + i]);
+    }
+    std::stringstream cgpa;
+    std::string cgpa_html =
+        R"(
+                <table style="width: 100%">
+                  <colgroup>
+                    <col span="1" style="width: 100%;">
+                  </colgroup>
+                  <!-- (%r%r) these are row indicator comments. Don not delete -->
+                  <tbody>
+                    <tr>
+                      <td style="text-align:  center;"><pre style="line-height:1.0">%s</pre></td>
+                    </tr>
+                  </tbody>
+                </table>
+                )";
+
+    if (1 > (sum_credit)){
+        cgpa << "0";
+    }else{
+        cgpa << std::fixed << std::setprecision(3) << (sum_weight/sum_credit);
+    }
+    Utility::replace(cgpa_html, "%s", cgpa.str());
+    ui->cgpaBrowser->setAlignment(Qt::AlignCenter);
+    ui->cgpaBrowser->setHtml(QString::fromStdString(cgpa_html));
 }
