@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     ui->credit_input->setInputMethodHints(Qt::ImhPreferNumbers);
-    ui->letter_input->setInputMethodHints(Qt::ImhPreferUppercase);
+    //ui->letter_input->setInputMethodHints(Qt::ImhPreferUppercase);
     QFontDatabase::addApplicationFont(":/new/DroidSansMono.ttf");
     ui->textBrowser->setFont(QFont("DroidSansMono", 24, 1));
     ui->fileBrowser->setFont(QFont("DroidSansMono", 20, 1));
@@ -66,8 +66,10 @@ void MainWindow::on_textBrowser_cursorPositionChanged()
     ui->textBrowser->setTextCursor(cur);
     //text = cur.selectedText();
 
+    int index = ui->letterBox->findText(QString::fromStdString(all_data_list[letter_data + (block_number*10)]));
+    ui->letterBox->setCurrentIndex(index);
     ui->course_input->setText(QString::fromStdString(all_data_list[coursename_data + (block_number*10)]));
-    ui->letter_input->setText(QString::fromStdString(all_data_list[letter_data + (block_number*10)]));
+    //ui->letter_input->setText();
     ui->credit_input->setText(QString::fromStdString(all_data_list[credit_data + (block_number*10)]));
     update_cgpa();
 }
@@ -75,7 +77,7 @@ void MainWindow::on_textBrowser_cursorPositionChanged()
 void MainWindow::on_addButton_clicked()
 {
     std::vector <std::string> temp_valid_letters = Utility::VALID_LETTERS;
-    if (!(std::find(Utility::VALID_LETTERS.begin(), Utility::VALID_LETTERS.end(), ui->letter_input->text().toStdString()) != Utility::VALID_LETTERS.end()))
+    if (!(std::find(Utility::VALID_LETTERS.begin(), Utility::VALID_LETTERS.end(), ui->letterBox->currentText().toStdString()) != Utility::VALID_LETTERS.end()))
     {// Element not in vector.
         return;
     }
@@ -91,7 +93,7 @@ void MainWindow::on_addButton_clicked()
 
     std::stringstream stream;
     double grade_add;
-    std::string letter_add = ui->letter_input->text().toStdString();
+    std::string letter_add = ui->letterBox->currentText().toStdString();
 
     grade_add = Utility::calculate_grade(letter_add);
     stream << std::fixed << std::setprecision(1) << grade_add;
@@ -113,7 +115,7 @@ void MainWindow::on_addButton_clicked()
         all_data_list[all_data_size+credit] =  "credit";
         all_data_list[all_data_size+credit_data] = ui->credit_input->text().toStdString();
         all_data_list[all_data_size+letter] =  "letter";
-        all_data_list[all_data_size+letter_data] = ui->letter_input->text().toStdString();
+        all_data_list[all_data_size+letter_data] = letter_add;
         all_data_list[all_data_size+grade] =  "grade";
         all_data_list[all_data_size+grade_data] = grade_add_str;
         all_data_list[all_data_size+weight] =  "weight";
@@ -122,7 +124,7 @@ void MainWindow::on_addButton_clicked()
     }
     else {
         all_data_list[coursename_data + (block_number*10)] =  ui->course_input->text().toStdString();
-        all_data_list[letter_data + (block_number*10)] = ui->letter_input->text().toStdString();
+        all_data_list[letter_data + (block_number*10)] = letter_add;
         all_data_list[credit_data + (block_number*10)] = ui->credit_input->text().toStdString();
         all_data_list[grade_data + (block_number*10)] = grade_add_str;
         all_data_list[weight_data + (block_number*10)] = weight_str;
